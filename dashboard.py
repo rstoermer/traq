@@ -3,6 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 from functions import *
+import plotly.graph_objs as go
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -15,28 +16,21 @@ con.close()
 
 #transform the dataframe
 depot['position'] = depot['account'] + " - " + depot['name']
-depot['date'] = depot['date'].apply(lambda x: x[:-10])
+depot = depot.pivot_table(index='date', columns='position', values='total_value')
 
-
+traces = []
+for position, values in depot.iteritems():
+    traces.append(go.Scatter(x=values.index, y=values.values, name=position, stackgroup='A'))
 
 #Generate the Dash App
-app.layout = html.Div(children=[
-    html.H1(children='Visualisierung Depot'),
-
-    html.Div(children='''
-        Dash: A web application framework for Python.
-    '''),
-
+app.layout = html.Div([
     dcc.Graph(
-        id='example-graph',
+        id='Overview',
         figure={
-            'data': [
-                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
-                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
-            ],
-            'layout': {
-                'title': 'Dash Data Visualization'
-            }
+            'data': traces,
+            'layout': go.Layout(
+                hovermode='closest'
+            )
         }
     )
 ])
