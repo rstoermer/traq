@@ -6,7 +6,7 @@ from functions import *
 def main():
     config = load_config('config.json')
     
-    timestamp = datetime.today()
+    timestamp = datetime.today().strftime('%d.%m.%Y - %H:%M')
 
     for entry in config['accounts_nr'].items():
         f = FinTS3PinTanClient(entry[1]['blz'], entry[1]['nr'], entry[1]['pass'], 'https://fints.ing-diba.de/fints/')
@@ -21,4 +21,4 @@ def main():
 if __name__ == '__main__':
     while True:
         main()
-        time.sleep(10)
+        time.sleep(7200)
