@@ -4,6 +4,7 @@
 ### Custom ###
 config.json
 database.sqlite3
+.vscode/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
