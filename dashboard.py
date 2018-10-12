@@ -9,20 +9,6 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-#general functions
-#generate needed basic dataframes
-def serve_df():
-    #Load the current depot
-    con = db_connect()
-    depot = pd.read_sql_query("SELECT * FROM accountholdings", con)
-    con.close()
-
-    #Add new needed row for "Name of position" and "Value of position when bought"
-    depot['position'] = depot['account'] + " - " + depot['name']
-    depot['total_value_buy'] = depot['pieces'] * depot['acq_price']
-    
-    return depot
-
 #generate charts
 def serve_layout():
     depot = serve_df()

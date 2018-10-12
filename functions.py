@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import json
+import pandas as pd
 
 DEFAULT_PATH = os.path.join(os.path.dirname(__file__), 'database.sqlite3')
 
@@ -41,3 +42,15 @@ def save_db(date, account, isin, name, market_value, value_symbol, pieces, total
     cur.execute(statement, (date, account, isin, name, market_value, value_symbol, pieces, total_value, acq_price))
     con.commit()
     con.close()
+
+def serve_df():
+    #Load the current depot
+    con = db_connect()
+    depot = pd.read_sql_query("SELECT * FROM accountholdings", con)
+    con.close()
+
+    #Add new needed row for "Name of position" and "Value of position when bought"
+    depot['position'] = depot['account'] + " - " + depot['name']
+    depot['total_value_buy'] = depot['pieces'] * depot['acq_price']
+    
+    return depot
