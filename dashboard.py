@@ -9,24 +9,58 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-def serve_layout():
+#general functions
+#generate needed basic dataframes
+def serve_df():
     #Load the current depot
     con = db_connect()
     depot = pd.read_sql_query("SELECT * FROM accountholdings", con)
     con.close()
 
-    #transform the dataframe
+    #Add new needed row for "Name of position" and "Value of position when bought"
     depot['position'] = depot['account'] + " - " + depot['name']
-    depot = depot.pivot_table(index='date', columns='position', values='total_value')
+    depot['total_value_buy'] = depot['pieces'] * depot['acq_price']
+    
+    return depot
+
+#generate charts
+def serve_layout():
+    depot = serve_df()
+
+    #Create two dataframes, one for a time series of current values (depotNow) and one for a time series of value when bought (depotBuy)
+    depotNow = depot.pivot_table(index='date', columns='position', values='total_value')
 
     traces = []
-    for position, values in depot.iteritems():
+
+    #Iterate through depot with current values and add them to the trace
+    for position, values in depotNow.iteritems():
         traces.append(go.Scatter(x=values.index, y=values.values, name=position, stackgroup='A'))
 
-    return html.Div([dcc.Graph(id='Overview', style={'height': '100vh'}, figure={'data': traces,'layout': go.Layout(hovermode='closest')})])
+    return html.Div([dcc.Graph(id='Overview', style={'height': '100vh'}, figure={'data': traces,'layout': go.Layout(legend={'x': 0, 'y': 0, 'bgcolor': 'rgba(255,255,255,.65)'})})])
+
+def serve_layout2():
+    depot = serve_df()
+    
+    #Create two dataframes, one for a time series of current values (depotNow) and one for a time series of value when bought (depotBuy)
+    depotNow = depot.pivot_table(index='date', columns='position', values='total_value')
+    depotBuy = depot.pivot_table(index='date', columns='position', values='total_value_buy')
+
+    #Create one additional dataframe to track the overall value of the portfolio compared to the value when bought
+    depotOverall = pd.DataFrame()
+    depotOverall['now'] = depotNow.sum(axis=1)
+    depotOverall['buy'] = depotBuy.sum(axis=1)
+
+    traces = []
+
+    #Add overall value to the chart
+    traces.append(go.Scatter(x=depotOverall['now'].index, y=depotOverall['now'].values, name='Aktueller Gesamtwert', stackgroup='A'))
+    traces.append(go.Scatter(x=depotOverall['buy'].index, y=depotOverall['buy'].values, name='Kaufwert', stackgroup='B'))
+
+    return html.Div([dcc.Graph(id='Overview', style={'height': '100vh'}, figure={'data': traces,'layout': go.Layout(legend={'x': 0, 'y': 0, 'bgcolor': 'rgba(255,255,255,.65)'})})])
+
 
 #Generate the Dash App
-app.layout = serve_layout
+app.layout = serve_layout()
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='192.168.1.3', port=8050)
+    app.run_server(debug=True, host='localhost', port=8050)
