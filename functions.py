@@ -52,5 +52,8 @@ def serve_df():
     #Add new needed row for "Name of position" and "Value of position when bought"
     depot['position'] = depot['account'] + " - " + depot['name']
     depot['total_value_buy'] = depot['pieces'] * depot['acq_price']
+
+    #covert dates to datetime objects
+    depot['date'] = pd.to_datetime(depot['date'], format='%d.%m.%Y - %H:%M')
     
     return depot
