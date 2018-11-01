@@ -12,8 +12,14 @@ def main():
 
     for entry in config['accounts_nr'].items():
         #Mit Konto verbinden
-        f = FinTS3PinTanClient(entry[1]['blz'], entry[1]['nr'], entry[1]['pass'], 'https://fints.ing-diba.de/fints/')
+        try:
+            f = FinTS3PinTanClient(entry[1]['blz'], entry[1]['nr'], entry[1]['pass'], 'https://fints.ing-diba.de/fints/')
         
+        except:
+            #If connection not working wait a bit and try again. Better solution later...
+            time.sleep(300)
+            f = FinTS3PinTanClient(entry[1]['blz'], entry[1]['nr'], entry[1]['pass'], 'https://fints.ing-diba.de/fints/')
+
         #Konten abrufen
         accountList = f.get_sepa_accounts()
         for account in accountList:
