@@ -55,5 +55,6 @@ def serve_df():
 
     #covert dates to datetime objects
     depot['date'] = pd.to_datetime(depot['date'], format='%d.%m.%Y - %H:%M')
+    depot.set_index('date', inplace=True)
     
     return depot
