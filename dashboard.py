@@ -78,7 +78,7 @@ def update_figure(selected_graph):
         #Iterate through depot with current values and add them to the trace
         for position, values in depotDiff.iteritems():
             traces.append(go.Scatter(x=values.index, y=values.values, name=position))
-            
+
         figure = go.Figure(data=traces)
 
         return {
@@ -188,4 +188,4 @@ def update_figure(selected_graph):
         }
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='localhost', port=8050)
+    app.run_server(debug=True, host='192.168.1.3', port=8050)
