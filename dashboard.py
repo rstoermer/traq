@@ -18,7 +18,8 @@ app.layout = html.Div([
         options=[
             {'label': 'Gesamtportfolio', 'value': 'gesamtportfolio'},
             {'label': 'Kaufwert vs. Aktueller Wert', 'value': 'kaufwertVsAktuell'},
-            {'label': 'Gewinn vs. Verlust', 'value': 'gewinnVerlust'}
+            {'label': 'Gewinn vs. Verlust', 'value': 'gewinnVerlust'},
+            {'label': 'Einzelperformance', 'value': 'einzelperformance'}
         ],
         value='gewinnVerlust'
     ),
@@ -45,6 +46,40 @@ def update_figure(selected_graph):
         #Iterate through depot with current values and add them to the trace
         for position, values in depotNow.iteritems():
             traces.append(go.Scatter(x=values.index, y=values.values, name=position, stackgroup='A'))
+
+        return {
+            'data': traces,
+            'layout': go.Layout(
+                legend={'x': 0, 'y': 0, 'bgcolor': 'rgba(255,255,255,.65)'},
+                margin=go.layout.Margin(
+                    l=40,
+                    r=10,
+                    b=30,
+                    t=10,
+                    pad=4
+                )
+            )
+        }
+
+    if selected_graph == 'einzelperformance':
+        print(selected_graph)
+        #Read in the entire depot
+        depot = serve_df()
+
+        #Create two dataframes, one for a time series of current values (depotNow) and one for a time series of value when bought (depotBuy)
+        depotNow = depot.pivot_table(index='date', columns='position', values='total_value')
+        depotBuy = depot.pivot_table(index='date', columns='position', values='total_value_buy')
+
+        depotDiff = ((depotNow / depotBuy) - 1)*100
+        depotDiff = depotDiff.groupby(depotDiff.index.date).mean()
+
+        traces = []
+
+        #Iterate through depot with current values and add them to the trace
+        for position, values in depotDiff.iteritems():
+            traces.append(go.Scatter(x=values.index, y=values.values, name=position))
+            
+        figure = go.Figure(data=traces)
 
         return {
             'data': traces,
